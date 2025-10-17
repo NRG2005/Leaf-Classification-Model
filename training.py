@@ -1,9 +1,3 @@
-"""
-PyTorch Leaf Recognition Model - Improved Based on Stanford Paper
-Implements best practices from "Stop and Scan the Trees" paper
-Achieves 97%+ accuracy using transfer learning
-"""
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -27,9 +21,9 @@ print(f"Using device: {device}")
 if device.type == 'cuda':
     print(f"GPU: {torch.cuda.get_device_name(0)}")
     print(f"Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
-    print("✓ RTX 3060 detected - training will be FAST!")
+    print("âœ“ RTX 3060 detected - training will be FAST!")
 else:
-    print("⚠ No GPU detected - training will be slow")
+    print("âš  No GPU detected - training will be slow")
 print("=" * 60 + "\n")
 
 
@@ -77,7 +71,7 @@ class LeafRecognitionModel:
             for name, param in self.model.named_parameters():
                 if 'fc' not in name:  # Don't freeze final layer
                     param.requires_grad = False
-            print("✓ Only final classifier layer is trainable")
+            print("âœ“ Only final classifier layer is trainable")
         
         # Loss and optimizer (paper used Adam with lower LR for fine-tuning)
         self.criterion = nn.CrossEntropyLoss()
@@ -92,8 +86,8 @@ class LeafRecognitionModel:
             self.optimizer, mode='min', factor=0.5, patience=3
         )
         
-        print(f"✓ Model built with {self.num_classes} classes")
-        print(f"✓ Learning rate: {self.learning_rate}")
+        print(f"âœ“ Model built with {self.num_classes} classes")
+        print(f"âœ“ Learning rate: {self.learning_rate}")
         
         return self.model
     
@@ -104,8 +98,7 @@ class LeafRecognitionModel:
         Paper used: 256x256 resize, normalization with ImageNet stats
         """
         
-        # Paper's preprocessing: resize to 256x256, normalize
-        # They did NOT use data augmentation in the paper
+   
         train_transform = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
@@ -145,7 +138,7 @@ class LeafRecognitionModel:
             class_weights = {cls: 1.0/count for cls, count in class_counts.items()}
             sample_weights = [class_weights[label] for _, label in train_dataset.samples]
             sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
-            print("✓ Using weighted sampling for class imbalance")
+            print("âœ“ Using weighted sampling for class imbalance")
         
         # Create data loaders
         train_loader = DataLoader(
@@ -169,10 +162,10 @@ class LeafRecognitionModel:
         
         self.class_names = train_dataset.classes
         
-        print(f"\n✓ Training samples: {len(train_dataset)}")
-        print(f"✓ Validation samples: {len(val_dataset)}")
-        print(f"✓ Number of classes: {len(self.class_names)}")
-        print(f"✓ Batch size: {batch_size}")
+        print(f"\nâœ“ Training samples: {len(train_dataset)}")
+        print(f"âœ“ Validation samples: {len(val_dataset)}")
+        print(f"âœ“ Number of classes: {len(self.class_names)}")
+        print(f"âœ“ Batch size: {batch_size}")
         
         return train_loader, val_loader
     
@@ -305,7 +298,7 @@ class LeafRecognitionModel:
                     'class_names': self.class_names,
                     'num_classes': self.num_classes
                 }, 'best_leaf_model.pth')
-                print(f"  ✓ Best model saved! (Val Acc: {val_acc:.2f}%, Top-5: {val_top5:.2f}%)")
+                print(f"  âœ“ Best model saved! (Val Acc: {val_acc:.2f}%, Top-5: {val_top5:.2f}%)")
                 patience_counter = 0
             else:
                 patience_counter += 1
@@ -317,7 +310,7 @@ class LeafRecognitionModel:
         
         total_time = time.time() - start_time
         print("\n" + "=" * 60)
-        print("✅ TRAINING COMPLETE")
+        print("âœ… TRAINING COMPLETE")
         print("=" * 60)
         print(f"Total time: {total_time/60:.1f} minutes")
         print(f"Best validation accuracy: {best_val_acc:.2f}%")
@@ -357,7 +350,7 @@ class LeafRecognitionModel:
         
         plt.tight_layout()
         plt.savefig('training_results.png', dpi=150, bbox_inches='tight')
-        print("\n✓ Training plots saved as 'training_results.png'")
+        print("\nâœ“ Training plots saved as 'training_results.png'")
         plt.show()
     
     def predict_image(self, image_path, top_k=5):
@@ -366,7 +359,7 @@ class LeafRecognitionModel:
         """
         self.model.eval()
         
-        # Same preprocessing as paper
+       
         transform = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
@@ -384,15 +377,15 @@ class LeafRecognitionModel:
         
         image_tensor = transform(image).unsqueeze(0).to(self.device)
         
-        # Predict
+      
         with torch.no_grad():
             outputs = self.model(image_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)[0]
         
-        # Get top K predictions
+      
         top_probs, top_indices = probabilities.topk(top_k)
         
-        print(f"\n🍃 Predictions for {Path(image_path).name}:")
+        print(f"\nðŸƒ Predictions for {Path(image_path).name}:")
         print("=" * 60)
         results = []
         for i, (prob, idx) in enumerate(zip(top_probs, top_indices), 1):
@@ -420,12 +413,12 @@ class LeafRecognitionModel:
             }
         }, filepath)
         
-        # Save class names
+      
         with open('class_names.json', 'w') as f:
             json.dump(self.class_names, f, indent=2)
         
-        print(f"\n✓ Model saved to {filepath}")
-        print("✓ Class names saved to class_names.json")
+        print(f"\nâœ“ Model saved to {filepath}")
+        print("âœ“ Class names saved to class_names.json")
     
     def load_model(self, filepath, model_name='resnet50'):
         """Load saved model for inference"""
@@ -435,14 +428,14 @@ class LeafRecognitionModel:
         self.num_classes = checkpoint['num_classes']
         self.class_names = checkpoint['class_names']
         
-        # Build model architecture
+    
         self.build_model(model_name, freeze_backbone=False)
         
-        # Load weights
+    
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
         
-        # Load training history if available
+       
         if 'train_history' in checkpoint:
             history = checkpoint['train_history']
             self.train_losses = history.get('train_losses', [])
@@ -450,22 +443,18 @@ class LeafRecognitionModel:
             self.train_accs = history.get('train_accs', [])
             self.val_accs = history.get('val_accs', [])
         
-        print(f"✓ Model loaded successfully")
-        print(f"✓ Classes: {self.num_classes}")
+        print(f"âœ“ Model loaded successfully")
+        print(f"âœ“ Classes: {self.num_classes}")
         
         return self.model
 
 
-# ============================================================================
-# TRAINING SCRIPT
-# ============================================================================
-
 def train_model():
     """Main training function"""
-    print("\n" + "🌳" * 20)
+    print("\n" + "ðŸŒ³" * 20)
     print("PYTORCH LEAF RECOGNITION TRAINING")
     print("Based on Stanford's 'Stop and Scan the Trees' paper")
-    print("🌳" * 20 + "\n")
+    print("ðŸŒ³" * 20 + "\n")
     
     # Configuration (optimized based on paper)
     TRAIN_DIR = "leafsnap-dataset/train"
@@ -476,17 +465,17 @@ def train_model():
     MODEL_NAME = 'resnet50'  # Paper showed ResNet50 gets 97.6%
     NUM_WORKERS = min(mp.cpu_count(), 8)
     
-    # Count classes
+
     num_classes = len(list(Path(TRAIN_DIR).iterdir()))
     print(f"Detected {num_classes} classes\n")
     
-    # Initialize
+   
     model = LeafRecognitionModel(num_classes, learning_rate=LEARNING_RATE)
     
-    # Build model (freeze backbone for transfer learning)
+ 
     model.build_model(model_name=MODEL_NAME, freeze_backbone=True)
     
-    # Get data loaders
+
     train_loader, val_loader = model.get_data_loaders(
         TRAIN_DIR, VAL_DIR,
         batch_size=BATCH_SIZE,
@@ -494,47 +483,41 @@ def train_model():
         use_weighted_sampling=False
     )
     
-    # Train
+  
     model.train(train_loader, val_loader, epochs=EPOCHS)
     
-    # Plot results
+    
     model.plot_results()
     
-    # Save model
+    
     model.save_model('leaf_model_final.pth')
     
-    print("\n✅ Training complete! Model ready for inference.")
+    print("\nâœ… Training complete! Model ready for inference.")
     print("\nTo classify a leaf image, run:")
     print("  python train_leafsnap.py --predict path/to/leaf.jpg")
 
 
-# ============================================================================
-# INFERENCE SCRIPT
-# ============================================================================
 
 def predict_leaf(image_path, model_path='best_leaf_model.pth', model_name='resnet50'):
     """Predict a single leaf image"""
-    print("\n" + "🔍" * 20)
+    print("\n" + "ðŸ”" * 20)
     print("LEAF CLASSIFICATION")
-    print("🔍" * 20 + "\n")
+    print("ðŸ”" * 20 + "\n")
     
-    # Load model
+   
     model = LeafRecognitionModel(num_classes=185)  # Will be updated from checkpoint
     model.load_model(model_path, model_name=model_name)
     
-    # Predict
+ 
     species, confidence = model.predict_image(image_path, top_k=5)
     
-    print(f"\n✅ Prediction complete!")
+    print(f"\nâœ… Prediction complete!")
     print(f"Most likely species: {species}")
     print(f"Confidence: {confidence:.2f}%")
     
     return species, confidence
 
 
-# ============================================================================
-# MAIN
-# ============================================================================
 
 if __name__ == "__main__":
     import sys
@@ -552,5 +535,4 @@ if __name__ == "__main__":
         else:
             print("Unknown argument. Use --predict <image_path> for inference")
     else:
-        # Default: train the model
         train_model()
